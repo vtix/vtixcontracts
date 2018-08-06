@@ -21,11 +21,11 @@ contract FlatPricingExt is PricingStrategy, Ownable {
   /* How many weis one token costs */
   uint public oneTokenInWei5; 
   uint public oneTokenInCents;
-  uint public ethInCents;
+  //uint public ethInCents;
 
   ETHUSD public ethUsdObj;
   // Crowdsale rate has been changed
-  event RateChanged(uint newOneTokenInWei);
+  event RateChanged(uint oneTokenInCents);
 
   modifier onlyTier() {
     if (msg.sender != address(tier)) throw;
@@ -38,14 +38,12 @@ contract FlatPricingExt is PricingStrategy, Ownable {
     tier = _tier;
   }
   
-  function FlatPricingExt(uint _oneTokenInCents, uint _ethToUSDCents, address _ethUSDAddress) onlyOwner {
+  function FlatPricingExt(uint _oneTokenInCents, address _ethUSDAddress) onlyOwner {
     
-    require(_oneTokenInCents > 0);
-    require(_ethToUSDCents > 0);
+    require(_oneTokenInCents > 0);   
 
     oneTokenInCents = _oneTokenInCents;
-    ethUsdObj = ETHUSD(_ethUSDAddress);    
-    ethInCents = _ethToUSDCents;
+    ethUsdObj = ETHUSD(_ethUSDAddress); 
   }
 
   function updateRate(uint _oneTokenInCents) onlyTier {
@@ -63,7 +61,7 @@ contract FlatPricingExt is PricingStrategy, Ownable {
    */
   function calculatePrice(uint value, uint weiRaised, uint tokensSold, address msgSender, uint decimals) public constant returns (uint) {
     uint multiplier = 10 ** decimals;
-    ethInCents = getEthInCents();
+    uint ethInCents = getEthInCents();
     oneTokenInWei5 = oneTokenInCents.times(multiplier).divides(ethInCents);
 
     uint oneTokenInWei1 = oneTokenInWei5.times(60).divides(100);
@@ -85,7 +83,7 @@ contract FlatPricingExt is PricingStrategy, Ownable {
 
   function oneTokenInWei(uint tokensSold, uint decimals) public constant returns (uint) {
    uint multiplier = 10 ** decimals;
-    ethInCents = getEthInCents();
+   uint ethInCents = getEthInCents();
     oneTokenInWei5 = oneTokenInCents.times(multiplier).divides(ethInCents);
     
     uint oneTokenInWei1 = oneTokenInWei5.times(60).divides(100);

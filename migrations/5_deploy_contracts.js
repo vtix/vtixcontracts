@@ -3,7 +3,7 @@ const FlatPricingExt = artifacts.require('./FlatPricingExt.sol');
 const ETHUSD = artifacts.require('./ETHUSD.sol');
 
 const pricingStrategyParams = [
-      10,46821
+      10
 ];
 
 module.exports = function (deployer) {

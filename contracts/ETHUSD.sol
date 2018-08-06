@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
 import "./usingOraclize.sol";
-
+import "./Ownable.sol";
 /**
  * Contract which exposes `ethInCents` which is the Ether price in USD cents.
  * E.g. if 1 Ether is sold at 840.32 USD on the markets, the `ethInCents` will
@@ -15,9 +15,8 @@ import "./usingOraclize.sol";
  * the `update` function is called with a transaction which also replenishes the
  * balance of the contract.
  */
-contract ETHUSD is usingOraclize {
-
-    address owner;
+contract ETHUSD is usingOraclize, Ownable {
+   
     uint256 public ethInCents;
 
     event LogInfo(string description);
@@ -25,10 +24,11 @@ contract ETHUSD is usingOraclize {
     event LogUpdate(address indexed _owner, uint indexed _balance);
 
     // Constructor
-    function ETHUSD()
+    function ETHUSD(uint _ethInCents)
     payable
     public {
-        owner = msg.sender;
+               
+        ethInCents = _ethInCents;
 
         emit LogUpdate(owner, address(this).balance);
 
@@ -66,13 +66,13 @@ contract ETHUSD is usingOraclize {
             emit LogInfo("Oraclize query was sent, standing by for the answer..");
 
             // Using XPath to to fetch the right element in the JSON response
-            oraclize_query(60,"URL", "json(https://api.coinbase.com/v2/prices/ETH-USD/spot).data.amount");
+            oraclize_query(3600,"URL", "json(https://api.coinbase.com/v2/prices/ETH-USD/spot).data.amount");
         }
     }
 
     function instantUpdate()
     payable
-    public {
+    public onlyOwner {
         // Check if we have enough remaining funds
         if (oraclize_getPrice("URL") > address(this).balance) {
             emit LogInfo("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
@@ -84,4 +84,12 @@ contract ETHUSD is usingOraclize {
         }
     }
 
+    function withdrawFunds(address _addr) 
+    public
+    onlyOwner
+    {
+        if (msg.sender != owner) throw;
+        _addr.send(this.balance);
+    } 
+   
 }
